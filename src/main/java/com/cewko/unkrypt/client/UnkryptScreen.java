@@ -3,6 +3,8 @@ package com.cewko.unkrypt.client;
 import com.cewko.unkrypt.UnkryptMod;
 import com.cewko.unkrypt.service.UnicodeSupportProbe;
 import com.cewko.unkrypt.state.UnkryptSession;
+import com.cewko.unkrypt.crypto.SharedKeyCodec;
+
 import java.io.IOException;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -22,6 +24,12 @@ public final class UnkryptScreen extends GuiScreen {
     private static final int CONTENT_WIDTH = 204;
     private static final int CONTROLS_HEIGHT = 148;
 
+    private static final String MASKED_KEY = "xxxxxxxxxxxxxxxxxxxxxxxxxx";
+    private final SharedKeyCodec sharedKeyCodec;
+
+    private GuiButton showButton;
+    private boolean keyVisible;
+
     private final UnkryptSession session;
 
     private GuiButton encryptButton;
@@ -36,10 +44,12 @@ public final class UnkryptScreen extends GuiScreen {
 
     public UnkryptScreen(
         UnkryptSession session,
-        UnicodeSupportProbe unicodeSupportProbe
+        UnicodeSupportProbe unicodeSupportProbe,
+        SharedKeyCodec sharedKeyCodec
     ) {
         this.session = session;
         this.unicodeSupportProbe = unicodeSupportProbe;
+        this.sharedKeyCodec = sharedKeyCodec;
     }
 
     @Override
@@ -82,12 +92,14 @@ public final class UnkryptScreen extends GuiScreen {
         sharedKeyField.setMaxStringLength(64);
         sharedKeyField.setEnabled(false);
 
-        addDisabledKeyButton(
+        buttonList.add(new GuiButton(
             NEW_KEY_BUTTON_ID,
             contentLeft,
             controlsTop + 66,
+            48,
+            20,
             "New"
-        );
+        ));
 
         addDisabledKeyButton(
             COPY_BUTTON_ID,
@@ -103,12 +115,18 @@ public final class UnkryptScreen extends GuiScreen {
             "Paste"
         );
 
-        addDisabledKeyButton(
+        showButton = new GuiButton(
             SHOW_BUTTON_ID,
             contentLeft + 156,
             controlsTop + 66,
+            48,
+            20,
             "Show"
         );
+
+        buttonList.add(showButton);
+
+        updateSharedKeyField();
 
         unicodeCheckButton = new GuiButton(
             UNICODE_CHECK_BUTTON_ID,
@@ -160,6 +178,18 @@ public final class UnkryptScreen extends GuiScreen {
 
             case DONE_BUTTON_ID:
                 mc.displayGuiScreen(null);
+                break;
+
+            case NEW_KEY_BUTTON_ID:
+                session.setSharedKey(sharedKeyCodec.generate());
+                keyVisible = false;
+
+                updateSharedKeyField();
+                break;
+
+            case SHOW_BUTTON_ID:
+                keyVisible = !keyVisible;
+                updateSharedKeyField();
                 break;
 
             case UNICODE_CHECK_BUTTON_ID:
@@ -245,6 +275,31 @@ public final class UnkryptScreen extends GuiScreen {
         );
 
         super.drawScreen(mouseX, mouseY, partialTicks);
+    }
+
+    private void updateSharedKeyField() {
+        if (!session.hasSharedKey()) {
+            keyVisible = false;
+            sharedKeyField.setText("");
+
+            if (showButton != null) {
+                showButton.enabled = false;
+                showButton.displayString = "Show";
+            }
+
+            return;
+        }
+
+        if (keyVisible) {
+            sharedKeyField.setText(sharedKeyCodec.format(session.getSharedKey()));
+        } else {
+            sharedKeyField.setText(MASKED_KEY);
+        }
+
+        if (showButton != null) {
+            showButton.enabled = true;
+            showButton.displayString = keyVisible ? "Hide" : "Show";
+        }
     }
 
     @Override

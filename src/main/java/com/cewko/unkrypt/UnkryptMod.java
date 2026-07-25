@@ -4,6 +4,8 @@ import com.cewko.unkrypt.client.ChatEventHandler;
 import com.cewko.unkrypt.client.UnkryptCommand;
 import com.cewko.unkrypt.service.UnicodeSupportProbe;
 import com.cewko.unkrypt.state.UnkryptSession;
+import com.cewko.unkrypt.crypto.SharedKeyCodec;
+
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -22,12 +24,16 @@ public final class UnkryptMod {
     public static final String VERSION = "1.0.0";
 
     private final UnkryptSession session = new UnkryptSession();
+    private final SharedKeyCodec sharedKeyCodec = new SharedKeyCodec();
     private final UnicodeSupportProbe unicodeSupportProbe = new UnicodeSupportProbe();
 
-    private final ChatEventHandler eventHandler = new ChatEventHandler(session, unicodeSupportProbe);
+    private final ChatEventHandler eventHandler = new ChatEventHandler(
+        session, unicodeSupportProbe, sharedKeyCodec
+    );
 
     @Mod.EventHandler
     public void initialize(FMLInitializationEvent event) {
+        session.setSharedKey(sharedKeyCodec.generate());
         MinecraftForge.EVENT_BUS.register(eventHandler);
 
         ClientCommandHandler.instance.registerCommand(

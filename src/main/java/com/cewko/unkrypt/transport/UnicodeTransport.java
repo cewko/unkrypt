@@ -39,7 +39,7 @@ public final class UnicodeTransport {
     public static char encodeSymbol(int value) {
         if (value < 0 || value >= ALPHABET_SIZE) {
             throw new IllegalArgumentException(
-                "transport value must be between 0 abd 4095"
+                "transport value must be between 0 and 4095"
             );
         }
         return (char) (ALPHABET_START + value);

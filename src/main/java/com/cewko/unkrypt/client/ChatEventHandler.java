@@ -2,6 +2,8 @@ package com.cewko.unkrypt.client;
 
 import com.cewko.unkrypt.service.UnicodeSupportProbe;
 import com.cewko.unkrypt.state.UnkryptSession;
+import com.cewko.unkrypt.crypto.SharedKeyCodec;
+
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent;
@@ -10,15 +12,18 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 public class ChatEventHandler {
     private final UnkryptSession session;
+    private final SharedKeyCodec sharedKeyCodec;
     private final UnicodeSupportProbe unicodeSupportProbe;
     private boolean screenOpenRequested;
 
     public ChatEventHandler(
         UnkryptSession session,
-        UnicodeSupportProbe unicodeSupportProbe
+        UnicodeSupportProbe unicodeSupportProbe,
+        SharedKeyCodec sharedKeyCodec
     ) {
         this.session = session;
         this.unicodeSupportProbe = unicodeSupportProbe;
+        this.sharedKeyCodec = sharedKeyCodec;
     }
 
     public void requestScreenOpen() {
@@ -43,7 +48,11 @@ public class ChatEventHandler {
 
         if (minecraft.thePlayer != null) {
             minecraft.displayGuiScreen(
-                new UnkryptScreen(session, unicodeSupportProbe)
+                new UnkryptScreen(
+                    session, 
+                    unicodeSupportProbe,
+                    sharedKeyCodec
+                )
             );
         }
     }
