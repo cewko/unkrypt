@@ -24,6 +24,10 @@ public final class UnkryptScreen extends GuiScreen {
     private static final int CONTENT_WIDTH = 204;
     private static final int CONTROLS_HEIGHT = 148;
 
+    private static final int KEY_MESSAGE_TICKS  = 40;
+    private String keyMessage = "";
+    private int keyMessageTicksRemaining;
+
     private static final String MASKED_KEY = "xxxxxxxxxxxxxxxxxxxxxxxxxx";
     private final SharedKeyCodec sharedKeyCodec;
 
@@ -101,19 +105,23 @@ public final class UnkryptScreen extends GuiScreen {
             "New"
         ));
 
-        addDisabledKeyButton(
+        buttonList.add(new GuiButton(
             COPY_BUTTON_ID,
             contentLeft + 52,
             controlsTop + 66,
+            48,
+            20,
             "Copy"
-        );
+        ));
 
-        addDisabledKeyButton(
+        buttonList.add(new GuiButton(
             PASTE_BUTTON_ID,
             contentLeft + 104,
             controlsTop + 66,
+            48,
+            20,
             "Paste"
-        );
+        ));
 
         showButton = new GuiButton(
             SHOW_BUTTON_ID,
@@ -152,17 +160,6 @@ public final class UnkryptScreen extends GuiScreen {
         updateToggleLabels();
     }
 
-    private void addDisabledKeyButton(
-        int id,
-        int x,
-        int y,
-        String label
-    ) {
-        GuiButton button = new GuiButton(id, x, y, 48, 20, label);
-        button.enabled = false;
-        buttonList.add(button);
-    }
-
     @Override
     protected void actionPerformed(GuiButton button) throws IOException {
         switch (button.id) {
@@ -183,8 +180,28 @@ public final class UnkryptScreen extends GuiScreen {
             case NEW_KEY_BUTTON_ID:
                 session.setSharedKey(sharedKeyCodec.generate());
                 keyVisible = false;
+                keyMessageTicksRemaining = 0;
 
                 updateSharedKeyField();
+                break;
+
+            case COPY_BUTTON_ID:
+                if (session.hasSharedKey()) {
+                    setClipboardString(getFormattedSharedKey());
+                    showKeyMessage("copied");
+                }
+                break;
+
+            case PASTE_BUTTON_ID:
+                try {
+                    session.setSharedKey(sharedKeyCodec.parse(getClipboardString()));
+
+                    keyVisible = false;
+                    updateSharedKeyField();
+                    showKeyMessage("pasted");
+                } catch (IllegalArgumentException exception) {
+                    showKeyMessage("invalid");
+                }
                 break;
 
             case SHOW_BUTTON_ID:
@@ -222,6 +239,10 @@ public final class UnkryptScreen extends GuiScreen {
     public void updateScreen() {
         sharedKeyField.updateCursorCounter();
         unicodeCheckButton.enabled = !unicodeSupportProbe.isRunning();
+
+        if (keyMessageTicksRemaining > 0) {
+            keyMessageTicksRemaining--;
+        }
     }
 
     @Override
@@ -256,9 +277,12 @@ public final class UnkryptScreen extends GuiScreen {
             0xFFFFFF
         );
 
+        String sharedKeyLabel = keyMessageTicksRemaining > 0
+            ?"Shared key (" + keyMessage + ")" : "Shared key";
+
         drawString(
             fontRendererObj,
-            "Shared key",
+            sharedKeyLabel,
             contentLeft,
             controlsTop + 28,
             0xA0A0A0
@@ -291,7 +315,7 @@ public final class UnkryptScreen extends GuiScreen {
         }
 
         if (keyVisible) {
-            sharedKeyField.setText(sharedKeyCodec.format(session.getSharedKey()));
+            sharedKeyField.setText(getFormattedSharedKey());
         } else {
             sharedKeyField.setText(MASKED_KEY);
         }
@@ -300,6 +324,15 @@ public final class UnkryptScreen extends GuiScreen {
             showButton.enabled = true;
             showButton.displayString = keyVisible ? "Hide" : "Show";
         }
+    }
+
+    private String getFormattedSharedKey() {
+        return sharedKeyCodec.format(session.getSharedKey());
+    }
+
+    private void showKeyMessage(String message) {
+        keyMessage = message;
+        keyMessageTicksRemaining = KEY_MESSAGE_TICKS;
     }
 
     @Override
