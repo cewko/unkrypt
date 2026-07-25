@@ -1,5 +1,7 @@
 package com.cewko.unkrypt.client;
 
+import com.cewko.unkrypt.UnkryptMod;
+import com.cewko.unkrypt.service.UnicodeSupportProbe;
 import com.cewko.unkrypt.state.UnkryptSession;
 import java.io.IOException;
 import net.minecraft.client.gui.GuiButton;
@@ -18,6 +20,7 @@ public final class UnkryptScreen extends GuiScreen {
     private static final int DONE_BUTTON_ID = 8;
 
     private static final int CONTENT_WIDTH = 204;
+    private static final int CONTROLS_HEIGHT = 148;
 
     private final UnkryptSession session;
 
@@ -26,10 +29,17 @@ public final class UnkryptScreen extends GuiScreen {
     private GuiTextField sharedKeyField;
 
     private int contentLeft;
-    private int contentTop;
+    private int controlsTop;
 
-    public UnkryptScreen(UnkryptSession session) {
+    private final UnicodeSupportProbe unicodeSupportProbe;
+    private GuiButton unicodeCheckButton;
+
+    public UnkryptScreen(
+        UnkryptSession session,
+        UnicodeSupportProbe unicodeSupportProbe
+    ) {
         this.session = session;
+        this.unicodeSupportProbe = unicodeSupportProbe;
     }
 
     @Override
@@ -37,12 +47,12 @@ public final class UnkryptScreen extends GuiScreen {
         buttonList.clear();
 
         contentLeft = (width - CONTENT_WIDTH) / 2;
-        contentTop = height / 2 - 85;
+        controlsTop = (height - CONTROLS_HEIGHT) / 2;
 
         encryptButton = new GuiButton(
             ENCRYPT_BUTTON_ID,
             contentLeft,
-            contentTop + 22,
+            controlsTop,
             100,
             20,
             ""
@@ -51,7 +61,7 @@ public final class UnkryptScreen extends GuiScreen {
         decryptButton = new GuiButton(
             DECRYPT_BUTTON_ID,
             contentLeft + 104,
-            contentTop + 22,
+            controlsTop,
             100,
             20,
             ""
@@ -64,7 +74,7 @@ public final class UnkryptScreen extends GuiScreen {
             20,
             fontRendererObj,
             contentLeft,
-            contentTop + 62,
+            controlsTop + 40,
             CONTENT_WIDTH,
             20
         );
@@ -75,47 +85,47 @@ public final class UnkryptScreen extends GuiScreen {
         addDisabledKeyButton(
             NEW_KEY_BUTTON_ID,
             contentLeft,
-            contentTop + 88,
+            controlsTop + 66,
             "New"
         );
 
         addDisabledKeyButton(
             COPY_BUTTON_ID,
             contentLeft + 52,
-            contentTop + 88,
+            controlsTop + 66,
             "Copy"
         );
 
         addDisabledKeyButton(
             PASTE_BUTTON_ID,
             contentLeft + 104,
-            contentTop + 88,
+            controlsTop + 66,
             "Paste"
         );
 
         addDisabledKeyButton(
             SHOW_BUTTON_ID,
             contentLeft + 156,
-            contentTop + 88,
+            controlsTop + 66,
             "Show"
         );
 
-        GuiButton unicodeCheckButton = new GuiButton(
+        unicodeCheckButton = new GuiButton(
             UNICODE_CHECK_BUTTON_ID,
             contentLeft,
-            contentTop + 114,
+            controlsTop + 92,
             CONTENT_WIDTH,
             20,
             "Check Unicode support"
         );
 
-        unicodeCheckButton.enabled = false;
+        unicodeCheckButton.enabled = !unicodeSupportProbe.isRunning();
         buttonList.add(unicodeCheckButton);
 
         buttonList.add(new GuiButton(
             DONE_BUTTON_ID,
             contentLeft,
-            contentTop + 150,
+            controlsTop + 128,
             CONTENT_WIDTH,
             20,
             "Done"
@@ -152,6 +162,15 @@ public final class UnkryptScreen extends GuiScreen {
                 mc.displayGuiScreen(null);
                 break;
 
+            case UNICODE_CHECK_BUTTON_ID:
+                if (mc.thePlayer != null && !unicodeSupportProbe.isRunning()) {
+                    String probeMessage = unicodeSupportProbe.start(System.nanoTime());
+
+                    mc.thePlayer.sendChatMessage(probeMessage);
+                    unicodeCheckButton.enabled = false;
+                }
+                break;
+
             default:
                 break;
         }
@@ -172,6 +191,7 @@ public final class UnkryptScreen extends GuiScreen {
     @Override
     public void updateScreen() {
         sharedKeyField.updateCursorCounter();
+        unicodeCheckButton.enabled = !unicodeSupportProbe.isRunning();
     }
 
     @Override
@@ -200,9 +220,9 @@ public final class UnkryptScreen extends GuiScreen {
 
         drawCenteredString(
             fontRendererObj,
-            "Unkrypt",
+            UnkryptMod.NAME + " v" + UnkryptMod.VERSION,
             width / 2,
-            contentTop,
+            controlsTop - 22,
             0xFFFFFF
         );
 
@@ -210,7 +230,7 @@ public final class UnkryptScreen extends GuiScreen {
             fontRendererObj,
             "Shared key",
             contentLeft,
-            contentTop + 50,
+            controlsTop + 28,
             0xA0A0A0
         );
 
@@ -218,9 +238,9 @@ public final class UnkryptScreen extends GuiScreen {
 
         drawCenteredString(
             fontRendererObj,
-            "Unicode support has not been checked",
+            unicodeSupportProbe.getStatusMessage(),
             width / 2,
-            contentTop + 138,
+            controlsTop + 116,
             0xA0A0A0
         );
 
