@@ -5,7 +5,7 @@ import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
 
 public final class UnicodeSupportProbe {
-    private static final String PROBE_MARKER  = "~u1:";
+    private static final String PROBE_MARKER  = "1UT:";
     private static final int MAX_MESSAGE_LENGTH = 100;
 
     private static final long TIMEOUT_NANOS = TimeUnit.SECONDS.toNanos(5);

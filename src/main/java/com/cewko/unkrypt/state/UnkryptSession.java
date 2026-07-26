@@ -39,8 +39,4 @@ public final class UnkryptSession {
 
         this.sharedKey = sharedKey;
     }
-
-    public void clearSharedKey() {
-        sharedKey = null;
-    }
 }
