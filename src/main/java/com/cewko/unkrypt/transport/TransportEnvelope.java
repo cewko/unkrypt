@@ -91,4 +91,8 @@ public final class TransportEnvelope {
 
         return new TransportEnvelope(keyIdentifier, encryptedPayload);
     }
+
+    public static boolean startsWithMarker(String message) {
+        return message != null && message.startsWith(MARKER);
+    }
 }

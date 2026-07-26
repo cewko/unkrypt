@@ -5,6 +5,7 @@ import com.cewko.unkrypt.client.UnkryptCommand;
 import com.cewko.unkrypt.service.UnicodeSupportProbe;
 import com.cewko.unkrypt.state.UnkryptSession;
 import com.cewko.unkrypt.crypto.SharedKeyCodec;
+import com.cewko.unkrypt.service.UnkryptService;
 
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
@@ -26,9 +27,10 @@ public final class UnkryptMod {
     private final UnkryptSession session = new UnkryptSession();
     private final SharedKeyCodec sharedKeyCodec = new SharedKeyCodec();
     private final UnicodeSupportProbe unicodeSupportProbe = new UnicodeSupportProbe();
+    private final UnkryptService unkryptService = new UnkryptService();
 
     private final ChatEventHandler eventHandler = new ChatEventHandler(
-        session, unicodeSupportProbe, sharedKeyCodec
+        session, unicodeSupportProbe, sharedKeyCodec, unkryptService
     );
 
     @Mod.EventHandler
