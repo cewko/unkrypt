@@ -2,14 +2,10 @@
 {
   "modid": "unkrypt",
   "name": "unkrypt",
-  "description": ">,<",
+  "description": ":3 /unkrypt",
   "version": "${version}",
   "mcversion": "${mcversion}",
-  "url": "",
-  "updateUrl": "",
-  "authorList": ["cewko"],
-  "logoFile": "",
-  "screenshots": [],
-  "dependencies": []
+  "url": "https://github.com/cewko/unkrypt",
+  "authorList": ["cewko"]
 }
 ]
