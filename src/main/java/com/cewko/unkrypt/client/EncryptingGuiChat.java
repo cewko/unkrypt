@@ -2,10 +2,12 @@ package com.cewko.unkrypt.client;
 
 import com.cewko.unkrypt.service.UnkryptService;
 import com.cewko.unkrypt.state.UnkryptSession;
+import java.io.IOException;
 import java.security.GeneralSecurityException;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
+import org.lwjgl.input.Keyboard;
 
 public final class EncryptingGuiChat extends GuiChat {
 
@@ -29,6 +31,20 @@ public final class EncryptingGuiChat extends GuiChat {
 
         this.session = session;
         this.service = service;
+    }
+
+    @Override
+    protected void keyTyped(char typedCharacter, int keyCode)
+        throws IOException {
+        if (
+            keyCode == Keyboard.KEY_TAB &&
+            session.isEncryptionEnabled() &&
+            !inputField.getText().trim().startsWith("/")
+        ) {
+            return;
+        }
+
+        super.keyTyped(typedCharacter, keyCode);
     }
 
     @Override
