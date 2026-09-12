@@ -1,30 +1,29 @@
 package com.cewko.unkrypt.client;
 
-import com.cewko.unkrypt.service.UnicodeSupportProbe;
-import com.cewko.unkrypt.state.UnkryptSession;
 import com.cewko.unkrypt.crypto.SharedKeyCodec;
+import com.cewko.unkrypt.service.UnicodeSupportProbe;
 import com.cewko.unkrypt.service.UnkryptService;
+import com.cewko.unkrypt.state.UnkryptSession;
 import com.cewko.unkrypt.transport.TransportEnvelope;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.GeneralSecurityException;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.client.gui.GuiNewChat;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IChatComponent;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.GuiOpenEvent;
-import net.minecraftforge.fml.common.network.FMLNetworkEvent;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
+import net.minecraftforge.fml.common.network.FMLNetworkEvent;
+import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
 public class ChatEventHandler {
-    private static final String DECRYPTED_MESSAGE_INDICATOR = "[u] "; 
+
+    private static final String DECRYPTED_MESSAGE_INDICATOR = "[u] ";
     private static final Method SET_CHAT_LINE_METHOD =
         ReflectionHelper.findMethod(
             GuiNewChat.class,
@@ -76,11 +75,7 @@ public class ChatEventHandler {
 
         if (minecraft.thePlayer != null) {
             minecraft.displayGuiScreen(
-                new UnkryptScreen(
-                    session, 
-                    unicodeSupportProbe,
-                    sharedKeyCodec
-                )
+                new UnkryptScreen(session, unicodeSupportProbe, sharedKeyCodec)
             );
         }
     }
@@ -114,25 +109,43 @@ public class ChatEventHandler {
             }
 
             try {
+                possibleEncryptedMessage = TransportEnvelope.extractFromStart(
+                    possibleEncryptedMessage
+                );
+
                 String plaintext = unkryptService.decrypt(
                     session.getSharedKey(),
                     possibleEncryptedMessage
                 );
 
                 String formattedMessage = event.message.getFormattedText();
-                int encryptedPosition = formattedMessage.indexOf(possibleEncryptedMessage);
+                int encryptedPosition = formattedMessage.indexOf(
+                    possibleEncryptedMessage
+                );
 
                 if (encryptedPosition < 0) {
                     continue;
                 }
 
-                String formattedPrefix = formattedMessage.substring(0, encryptedPosition);
+                String formattedPrefix = formattedMessage.substring(
+                    0,
+                    encryptedPosition
+                );
 
-                ChatComponentText displayedMessage = new ChatComponentText(formattedPrefix);
-                ChatComponentText indicator = new ChatComponentText(DECRYPTED_MESSAGE_INDICATOR);
+                String formattedSuffix = formattedMessage.substring(
+                    encryptedPosition + possibleEncryptedMessage.length()
+                );
+
+                ChatComponentText displayedMessage = new ChatComponentText(
+                    formattedPrefix
+                );
+                ChatComponentText indicator = new ChatComponentText(
+                    DECRYPTED_MESSAGE_INDICATOR
+                );
 
                 displayedMessage.appendSibling(indicator);
                 displayedMessage.appendText(plaintext);
+                displayedMessage.appendText(formattedSuffix);
 
                 replaceIncomingMessageWithoutLogging(event, displayedMessage);
                 return;
@@ -153,11 +166,16 @@ public class ChatEventHandler {
 
         try {
             SET_CHAT_LINE_METHOD.invoke(
-                chatGui, message, 0, minecraft.ingameGUI.getUpdateCounter(), false
+                chatGui,
+                message,
+                0,
+                minecraft.ingameGUI.getUpdateCounter(),
+                false
             );
         } catch (IllegalAccessException exception) {
             throw new IllegalStateException(
-                "couldn't access minecraft's chat display method", exception
+                "couldn't access minecraft's chat display method",
+                exception
             );
         } catch (InvocationTargetException exception) {
             throw new IllegalStateException(

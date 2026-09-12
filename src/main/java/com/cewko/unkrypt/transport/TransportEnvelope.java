@@ -1,13 +1,14 @@
 package com.cewko.unkrypt.transport;
 
 public final class TransportEnvelope {
+
     private static final String MARKER = "1U";
 
     private static final int MAX_KEY_IDENTIFIER = 0xFFFFFF;
     private static final int MAX_MESSAGE_LENGTH = 100;
     private static final int KEY_IDENTIFIER_SYMBOLS = 2;
 
-    private static final int MINIMUM_MESSAGE_LENGTH = 
+    private static final int MINIMUM_MESSAGE_LENGTH =
         MARKER.length() + KEY_IDENTIFIER_SYMBOLS + 1;
 
     private final int keyIdentifier;
@@ -34,7 +35,9 @@ public final class TransportEnvelope {
         }
 
         if (encryptedPayload == null) {
-            throw new IllegalArgumentException("encrypted payload cannot be null");
+            throw new IllegalArgumentException(
+                "encrypted payload cannot be null"
+            );
         }
 
         int firstIdentifierPart = (keyIdentifier >>> 12) & 0xFFF;
@@ -57,22 +60,12 @@ public final class TransportEnvelope {
     }
 
     public static TransportEnvelope decode(String message) {
-        if (message == null) {
-            throw new IllegalArgumentException("message cannot be null");
-        }
+        int messageLength = getMessageLength(message);
 
-        if (message.length() > MAX_MESSAGE_LENGTH) {
+        if (message.length() != messageLength) {
             throw new IllegalArgumentException(
-                "encrypted message exceeds 100 characters"
+                "encrypted message has the wrong length"
             );
-        }
-
-        if (message.length() < MINIMUM_MESSAGE_LENGTH) {
-            throw new IllegalArgumentException("encrypted message is incomplete");
-        }
-
-        if (!message.startsWith(MARKER)) {
-            throw new IllegalArgumentException("message has no unkrypt marker");
         }
 
         int firstIdentifierPart = UnicodeTransport.decodeSymbol(
@@ -92,7 +85,50 @@ public final class TransportEnvelope {
         return new TransportEnvelope(keyIdentifier, encryptedPayload);
     }
 
+    public static String extractFromStart(String text) {
+        int messageLength = getMessageLength(text);
+        return text.substring(0, messageLength);
+    }
+
     public static boolean startsWithMarker(String message) {
         return message != null && message.startsWith(MARKER);
+    }
+
+    private static int getMessageLength(String text) {
+        if (text == null) {
+            throw new IllegalArgumentException("mesage cannot be null");
+        }
+
+        if (!startsWithMarker(text)) {
+            throw new IllegalArgumentException("message has no unkrypt marker");
+        }
+
+        if (text.length() < MINIMUM_MESSAGE_LENGTH) {
+            throw new IllegalArgumentException(
+                "encrypted message is shorter than expected"
+            );
+        }
+
+        int lengthPosition = MARKER.length() + KEY_IDENTIFIER_SYMBOLS;
+        int payloadBytes = UnicodeTransport.decodeSymbol(
+            text.charAt(lengthPosition)
+        );
+
+        int payloadSymbols = (payloadBytes * 8 + 11) / 12;
+        int messageLength = MINIMUM_MESSAGE_LENGTH + payloadSymbols;
+
+        if (messageLength > MAX_MESSAGE_LENGTH) {
+            throw new IllegalArgumentException(
+                "encrypted message exceeds 100 characters"
+            );
+        }
+
+        if (text.length() < messageLength) {
+            throw new IllegalArgumentException(
+                "encrypted message is shorter than its declared length"
+            );
+        }
+
+        return messageLength;
     }
 }
