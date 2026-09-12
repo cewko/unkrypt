@@ -1,18 +1,17 @@
 package com.cewko.unkrypt.client;
 
 import java.io.IOException;
-import net.minecraft.client.gui.GuiChat;
+import net.minecraft.client.gui.GuiSleepMP;
 import org.lwjgl.input.Keyboard;
 
-public final class EncryptingGuiChat
-    extends GuiChat
+public final class EncryptingGuiSleepMP
+    extends GuiSleepMP
     implements ChatProtection.Sender
 {
 
     private final ChatProtection protection;
 
-    public EncryptingGuiChat(String defaultText, ChatProtection protection) {
-        super(defaultText);
+    public EncryptingGuiSleepMP(ChatProtection protection) {
         this.protection = protection;
     }
 

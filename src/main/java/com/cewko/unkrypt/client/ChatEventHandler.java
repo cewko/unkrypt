@@ -11,6 +11,7 @@ import java.security.GeneralSecurityException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.GuiNewChat;
+import net.minecraft.client.gui.GuiSleepMP;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
@@ -39,6 +40,7 @@ public class ChatEventHandler {
     private final SharedKeyCodec sharedKeyCodec;
     private final UnicodeSupportProbe unicodeSupportProbe;
     private final UnkryptService unkryptService;
+    private final ChatProtection chatProtection;
     private boolean screenOpenRequested;
 
     public ChatEventHandler(
@@ -51,6 +53,7 @@ public class ChatEventHandler {
         this.unicodeSupportProbe = unicodeSupportProbe;
         this.sharedKeyCodec = sharedKeyCodec;
         this.unkryptService = unkryptService;
+        this.chatProtection = new ChatProtection(session, unkryptService);
     }
 
     public void requestScreenOpen() {
@@ -194,17 +197,21 @@ public class ChatEventHandler {
 
     @SubscribeEvent
     public void onGuiOpen(GuiOpenEvent event) {
-        if (event.gui == null || event.gui.getClass() != GuiChat.class) {
+        if (event.gui == null) {
             return;
         }
 
-        GuiChat originalChat = (GuiChat) event.gui;
-        String defaultText = ObfuscationReflectionHelper.getPrivateValue(
-            GuiChat.class,
-            originalChat,
-            "field_146409_v"
-        );
+        if (event.gui.getClass() == GuiChat.class) {
+            GuiChat originalChat = (GuiChat) event.gui;
+            String defaultText = ObfuscationReflectionHelper.getPrivateValue(
+                GuiChat.class,
+                originalChat,
+                "field_146409_v"
+            );
 
-        event.gui = new EncryptingGuiChat(defaultText, session, unkryptService);
+            event.gui = new EncryptingGuiChat(defaultText, chatProtection);
+        } else if (event.gui.getClass() == GuiSleepMP.class) {
+            event.gui = new EncryptingGuiSleepMP(chatProtection);
+        }
     }
 }
