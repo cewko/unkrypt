@@ -2,20 +2,20 @@ package com.cewko.unkrypt.client;
 
 import com.cewko.unkrypt.service.UnkryptService;
 import com.cewko.unkrypt.state.UnkryptSession;
-import com.cewko.unkrypt.transport.TransportEnvelope;
-
 import java.security.GeneralSecurityException;
-
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 
 public final class EncryptingGuiChat extends GuiChat {
+
     private final UnkryptSession session;
     private final UnkryptService service;
 
     public EncryptingGuiChat(
-        String defaultText, UnkryptSession session, UnkryptService service
+        String defaultText,
+        UnkryptSession session,
+        UnkryptService service
     ) {
         super(defaultText);
 
@@ -33,11 +33,7 @@ public final class EncryptingGuiChat extends GuiChat {
 
     @Override
     public void sendChatMessage(String message, boolean addToHistory) {
-        if (
-            !session.isEncryptionEnabled()
-            || message.startsWith("/")
-            || TransportEnvelope.startsWithMarker(message)
-        ) {
+        if (!session.isEncryptionEnabled() || message.startsWith("/")) {
             super.sendChatMessage(message, addToHistory);
             return;
         }
@@ -62,9 +58,7 @@ public final class EncryptingGuiChat extends GuiChat {
 
     private void showError(String message) {
         ChatComponentText error = new ChatComponentText(
-            EnumChatFormatting.RED
-            + "[unkrypt] "
-            + message
+            EnumChatFormatting.RED + "[unkrypt] " + message
         );
 
         mc.ingameGUI.getChatGUI().printChatMessage(error);
