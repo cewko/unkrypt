@@ -2,11 +2,10 @@ package com.cewko.unkrypt;
 
 import com.cewko.unkrypt.client.ChatEventHandler;
 import com.cewko.unkrypt.client.UnkryptCommand;
-import com.cewko.unkrypt.service.UnicodeSupportProbe;
-import com.cewko.unkrypt.state.UnkryptSession;
 import com.cewko.unkrypt.crypto.SharedKeyCodec;
+import com.cewko.unkrypt.service.UnicodeSupportProbe;
 import com.cewko.unkrypt.service.UnkryptService;
-
+import com.cewko.unkrypt.state.UnkryptSession;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -20,17 +19,22 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
     acceptedMinecraftVersions = "[1.8.9]"
 )
 public final class UnkryptMod {
+
     public static final String MOD_ID = "unkrypt";
     public static final String NAME = "Unkrypt";
-    public static final String VERSION = "1.0.0";
+    public static final String VERSION = "1.0.1";
 
     private final UnkryptSession session = new UnkryptSession();
     private final SharedKeyCodec sharedKeyCodec = new SharedKeyCodec();
-    private final UnicodeSupportProbe unicodeSupportProbe = new UnicodeSupportProbe();
+    private final UnicodeSupportProbe unicodeSupportProbe =
+        new UnicodeSupportProbe();
     private final UnkryptService unkryptService = new UnkryptService();
 
     private final ChatEventHandler eventHandler = new ChatEventHandler(
-        session, unicodeSupportProbe, sharedKeyCodec, unkryptService
+        session,
+        unicodeSupportProbe,
+        sharedKeyCodec,
+        unkryptService
     );
 
     @Mod.EventHandler
