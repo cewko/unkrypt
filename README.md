@@ -2,7 +2,7 @@
 
 forge 1.8.9 mod that adds AES-128-GCM encryption and unicode packing to users' messages
 
-*inspired by the expansion of big bro surveillance and ai message filtering on servers (wdym i cannot meow??!)*
+*inspired by the expansion of big bro surveillance and automated message filtering on servers :3*
 
 ## usage
 
@@ -12,7 +12,7 @@ there is only one command for now: `/unkrypt` which is used to open mod settings
 
 to start a private conversation simply share your key with the selected person (or ask them to share theirs). using external channels like discord or whatnot is preferred for key sharing cause in-game ones might very well be read by the server staff
 
-P.S. unkrypt doesn't store any configs on your machine, decrypted messages aren't written to the logs either
+P.S. you can use keybinds to open the menu and toggle encryption/decryption. decrypted messages aren't written to the logs
 
 ## installation 
 
@@ -46,4 +46,4 @@ created for educational purposes only. the author is not responsible for misuse 
 
 ## contributions
 
-are welcome 
+are welcome
