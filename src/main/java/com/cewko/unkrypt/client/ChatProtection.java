@@ -4,8 +4,6 @@ import com.cewko.unkrypt.service.UnkryptService;
 import com.cewko.unkrypt.state.UnkryptSession;
 import java.security.GeneralSecurityException;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EnumChatFormatting;
 
 public final class ChatProtection {
 
@@ -52,17 +50,9 @@ public final class ChatProtection {
             );
             sender.sendNormally(encryptedMessage, false);
         } catch (IllegalArgumentException exception) {
-            showError(exception.getMessage());
+            UnkryptMessages.error(exception.getMessage());
         } catch (GeneralSecurityException exception) {
-            showError("could not encrypt message");
+            UnkryptMessages.error("could not encrypt message");
         }
-    }
-
-    private void showError(String message) {
-        ChatComponentText error = new ChatComponentText(
-            EnumChatFormatting.RED + "[unkrypt] " + message
-        );
-
-        Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessage(error);
     }
 }

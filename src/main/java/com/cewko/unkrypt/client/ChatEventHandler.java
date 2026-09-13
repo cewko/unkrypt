@@ -41,19 +41,22 @@ public class ChatEventHandler {
     private final UnicodeSupportProbe unicodeSupportProbe;
     private final UnkryptService unkryptService;
     private final ChatProtection chatProtection;
+    private final UnkryptKeyBindings keyBindings;
     private boolean screenOpenRequested;
 
     public ChatEventHandler(
         UnkryptSession session,
         UnicodeSupportProbe unicodeSupportProbe,
         SharedKeyCodec sharedKeyCodec,
-        UnkryptService unkryptService
+        UnkryptService unkryptService,
+        UnkryptKeyBindings keyBindings
     ) {
         this.session = session;
         this.unicodeSupportProbe = unicodeSupportProbe;
         this.sharedKeyCodec = sharedKeyCodec;
         this.unkryptService = unkryptService;
         this.chatProtection = new ChatProtection(session, unkryptService);
+        this.keyBindings = keyBindings;
     }
 
     public void requestScreenOpen() {
@@ -67,6 +70,8 @@ public class ChatEventHandler {
         }
 
         unicodeSupportProbe.updateTimeout(System.nanoTime());
+
+        handleBindings();
 
         if (!screenOpenRequested) {
             return;
@@ -185,6 +190,32 @@ public class ChatEventHandler {
                 "minecraft couldn't display the decrypted message",
                 exception.getCause()
             );
+        }
+    }
+
+    private void handleBindings() {
+        boolean menuPressed = keyBindings.consumeOpenMenuPress();
+        boolean encryptionPressed = keyBindings.consumeEncryptionPress();
+        boolean decryptionPressed = keyBindings.consumeDecryptionPress();
+
+        Minecraft minecraft = Minecraft.getMinecraft();
+
+        if (minecraft.thePlayer == null || minecraft.currentScreen != null) {
+            return;
+        }
+
+        if (encryptionPressed) {
+            session.toggleEncryption();
+            UnkryptMessages.encryptionState(session.isEncryptionEnabled());
+        }
+
+        if (decryptionPressed) {
+            session.toggleDecryption();
+            UnkryptMessages.decryptionState(session.isDecryptionEnabled());
+        }
+
+        if (menuPressed) {
+            requestScreenOpen();
         }
     }
 

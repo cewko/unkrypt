@@ -2,6 +2,7 @@ package com.cewko.unkrypt;
 
 import com.cewko.unkrypt.client.ChatEventHandler;
 import com.cewko.unkrypt.client.UnkryptCommand;
+import com.cewko.unkrypt.client.UnkryptKeyBindings;
 import com.cewko.unkrypt.crypto.SharedKeyCodec;
 import com.cewko.unkrypt.service.UnicodeSupportProbe;
 import com.cewko.unkrypt.service.UnkryptService;
@@ -22,19 +23,21 @@ public final class UnkryptMod {
 
     public static final String MOD_ID = "unkrypt";
     public static final String NAME = "Unkrypt";
-    public static final String VERSION = "1.0.1";
+    public static final String VERSION = "1.1.0";
 
     private final UnkryptSession session = new UnkryptSession();
     private final SharedKeyCodec sharedKeyCodec = new SharedKeyCodec();
     private final UnicodeSupportProbe unicodeSupportProbe =
         new UnicodeSupportProbe();
     private final UnkryptService unkryptService = new UnkryptService();
+    private final UnkryptKeyBindings keyBindings = new UnkryptKeyBindings();
 
     private final ChatEventHandler eventHandler = new ChatEventHandler(
         session,
         unicodeSupportProbe,
         sharedKeyCodec,
-        unkryptService
+        unkryptService,
+        keyBindings
     );
 
     @Mod.EventHandler
@@ -45,5 +48,7 @@ public final class UnkryptMod {
         ClientCommandHandler.instance.registerCommand(
             new UnkryptCommand(eventHandler)
         );
+
+        keyBindings.register();
     }
 }
